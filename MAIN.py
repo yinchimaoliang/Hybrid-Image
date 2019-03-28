@@ -34,13 +34,20 @@ class MAIN():
         ])
 
 
-    def myFFT(self):
-        trans1 = np.zeros(self.img1.shape,np.complex128)
+
+    #自定义傅里叶变换,src为待操作图像,type决定是高通滤波还是低通滤波
+    def myFFT(self,src):
+        #trans1盛放傅里叶变换后的结果
+
+        trans = np.zeros(src.shape,np.complex128)
         # print(self.img1[:,:,0])
         for i in range(3):
-            f = np.fft.fft2(self.img1[:,:,0])
-            trans1[:,:,i] = f[:,:]
-        return
+            f = np.fft.fft2(self.img1[:,:,i])
+            # print(f)
+            trans[:,:,i] = f[:,:]
+            # print(trans[:,:,i])
+        return trans
+        # print(trans[:,:,i])
         # print(np.abs(img_back))
 
 
@@ -49,16 +56,18 @@ class MAIN():
         # print("a",src)
         return_val = np.zeros(src.shape)
         for i in range(3):
-            fshift = np.fft.ifftshift(src[:,:,i])
-            f = np.fft.ifft2(fshift)
+            f = np.fft.ifft2(src[:,:,i])
             # print(f)
-            return_val[:,:,i] = np.abs(f)
+            return_val[:,:,i] = np.abs(f[:,:])
             # print(src[:,:,i])
 
         return return_val
 
     def hybridImage(self):
-        self.myFFT()
+        print(self.img1)
+        trans = self.myFFT(self.img1)
+        img_back = self.myIFFT(trans)
+        print(img_back)
 
 
 
