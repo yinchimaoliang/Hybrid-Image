@@ -5,9 +5,11 @@ import math
 
 SRC1 = "./images/Barbara Palvin.jpg"
 SRC2 = "./images/Constance Jablonski.jpg"
-OUTPUT = "./result/result.jpg"
-RADIUS = 20
-SIGMA = 10
+OUTPUT_GAUSSIAN = "./result/result_gaussian.jpg"
+OUTPUT_FFT = "./result/result_fft.jpg"
+RADIUS = 10
+SIGMA_GAUSSIAN = 10
+SIGMA_FFT = 0.985
 
 
 class MAIN():
@@ -40,7 +42,7 @@ class MAIN():
         return window / np.sum(window)
 
     def myGaussian(self,src):
-        myFilter = self.getFilter(RADIUS,SIGMA)
+        myFilter = self.getFilter(RADIUS,SIGMA_GAUSSIAN)
         print(myFilter)
         # trans = np.zeros(src.shape,np.uint8)
         print(src)
@@ -75,34 +77,36 @@ class MAIN():
         return return_val
 
     #图像混合操作
-    def hybridImage(self,sigma):
+    def hybridImage(self):
+        #Gaussian method
         trans1 = self.myGaussian(self.img1)
         trans2 = self.img2 - self.myGaussian(self.img2)
         result = trans2 + trans1
-        cv.imwrite("result.jpg",result)
-        # trans1 = self.myFFT(self.img1)
-        # trans2 = self.myFFT(self.img2)
-        # h = trans1.shape[0]
-        # w = trans1.shape[1]
-        #
-        # #中心点坐标
-        # center_w = w // 2
-        # center_h = h // 2
-        #
-        # #滤波操作
-        # for i in range(int(center_h - sigma / 2 * h),int(center_h + sigma / 2 * h)):
-        #     for j in range(int(center_w - sigma / 2 * w),int(center_w + sigma / 2 * w)):
-        #         trans1[i][j] = [0,0,0]
-        #
-        # for i in range(len(trans2)):
-        #     for j in range(len(trans2[0])):
-        #         if trans1[i][j][:].all() != 0:
-        #             trans2[i][j] = [0,0,0]
-        #
-        # #反傅里叶变换
-        # img_back = self.myIFFT(trans1 + trans2)
-        # print(img_back)
-        # cv.imwrite(OUTPUT,img_back)
+        cv.imwrite(OUTPUT_GAUSSIAN,result)
+        #FFT method
+        trans1 = self.myFFT(self.img1)
+        trans2 = self.myFFT(self.img2)
+        h = trans1.shape[0]
+        w = trans1.shape[1]
+
+        #中心点坐标
+        center_w = w // 2
+        center_h = h // 2
+
+        #滤波操作
+        for i in range(int(center_h - SIGMA_FFT / 2 * h),int(center_h + SIGMA_FFT / 2 * h)):
+            for j in range(int(center_w - SIGMA_FFT / 2 * w),int(center_w + SIGMA_FFT / 2 * w)):
+                trans1[i][j] = [0,0,0]
+
+        for i in range(len(trans2)):
+            for j in range(len(trans2[0])):
+                if trans1[i][j][:].all() != 0:
+                    trans2[i][j] = [0,0,0]
+
+        #反傅里叶变换
+        img_back = self.myIFFT(trans1 + trans2)
+        print(img_back)
+        cv.imwrite(OUTPUT_FFT,img_back)
 
 
 
@@ -112,5 +116,5 @@ class MAIN():
 if __name__ == '__main__':
     t = MAIN(SRC1,SRC2)
     t.loadImage()
-    t.hybridImage(0.99)
+    t.hybridImage()
 
