@@ -5,8 +5,8 @@ from PIL import Image
 
 
 
-SRC1 = "./images/cat.png"
-SRC2 = "./images/people.png"
+SRC1 = "./images/Barbara Palvin.jpg"
+SRC2 = "./images/Lily Donaldson.jpg"
 
 
 
@@ -35,14 +35,14 @@ class MAIN():
 
 
 
-    #自定义傅里叶变换,src为待操作图像,type决定是高通滤波还是低通滤波
+    #自定义傅里叶变换,src为待操作图像
     def myFFT(self,src):
         #trans1盛放傅里叶变换后的结果
 
         trans = np.zeros(src.shape,np.complex128)
         # print(self.img1[:,:,0])
         for i in range(3):
-            f = np.fft.fft2(self.img1[:,:,i])
+            f = np.fft.fft2(src[:,:,i])
             # print(f)
             trans[:,:,i] = f[:,:]
             # print(trans[:,:,i])
@@ -54,7 +54,7 @@ class MAIN():
 
     def myIFFT(self,src):
         # print("a",src)
-        return_val = np.zeros(src.shape)
+        return_val = np.zeros(src.shape,np.uint8)
         for i in range(3):
             f = np.fft.ifft2(src[:,:,i])
             # print(f)
@@ -63,12 +63,35 @@ class MAIN():
 
         return return_val
 
-    def hybridImage(self):
-        print(self.img1)
-        trans = self.myFFT(self.img1)
-        img_back = self.myIFFT(trans)
-        print(img_back)
+    def hybridImage(self,sigma):
+        # print(self.img1)
+        trans1 = self.myFFT(self.img1)
+        trans2 = self.myFFT(self.img2)
+        h = trans1.shape[0]
+        w = trans1.shape[1]
+        center_w = w // 2
+        center_h = h // 2
+        result = trans1[:,:,:]
+        for i in range(int(sigma * (center_h - h)),int(sigma * (center_h + h))):
+            for j in range(int(sigma * (center_w - w)),int(sigma * (center_w + w))):
+                result[i][j] = [0,0,0]
+                # print(result[i][j])
+                # print(i,j)
 
+        for i in range(len(result)):
+            for j in range(len(result[0])):
+                if result[i][j][:].all() == 0:
+                    result[i][j][:] = trans2[i][j][:]
+                # else:
+                #     result[i][j][:] = 0
+
+
+        print(trans1)
+        print(result)
+        img_back = self.myIFFT(trans1)
+        # print(img_back)
+        cv.imshow("img_back",img_back)
+        cv.waitKey()
 
 
 
@@ -76,6 +99,6 @@ class MAIN():
 if __name__ == '__main__':
     t = MAIN(SRC1,SRC2)
     t.loadImage()
-    t.hybridImage()
+    t.hybridImage(0.02)
     # t.myFFT(t.img1,80e3,1)
 
