@@ -7,7 +7,7 @@ SRC1 = "./images/Dorothea.jpg"
 SRC2 = "./images/Lily.jpg"
 OUTPUT_GAUSSIAN = "./result/result_gaussian.jpg"
 OUTPUT_FFT = "./result/result_fft.jpg"
-RADIUS = 10
+RADIUS = 9
 SIGMA_GAUSSIAN = 10
 SIGMA_FFT = 0.98
 
@@ -32,7 +32,7 @@ class MAIN():
 
 
 
-
+    #获取卷积核
     def getFilter(self,radius,sigma):
         window = np.zeros((radius * 2 + 1, radius * 2 + 1))
         for i in range(-radius, radius + 1):
@@ -41,18 +41,27 @@ class MAIN():
                 window[i + radius][j + radius] = self.get_cv(r, sigma)
         return window / np.sum(window)
 
+
+    #自定义卷积函数
+    def myConv(self,src,filter):
+        result = np.array(src,dtype = np.uint16)
+        result = np.pad(result,((RADIUS,RADIUS),(RADIUS,RADIUS),(0,0)),'constant',constant_values=0)
+        h,w,d = src.shape
+        for i in range(d):
+            for j in range(h):
+                for k in range(w):
+                    result[RADIUS + j, RADIUS + k, i] = np.sum(np.multiply(result[j : j + 2 * RADIUS + 1,k : k + 2 * RADIUS + 1, i] , filter))
+        return result[RADIUS:h + RADIUS,RADIUS:w + RADIUS,:]
+
+
+
+
     def myGaussian(self,src):
         myFilter = self.getFilter(RADIUS,SIGMA_GAUSSIAN)
-        print(myFilter)
-        # trans = np.zeros(src.shape,np.uint8)
-        print(src)
+        #opencv自带卷积操作
         trans = cv.filter2D(src,3,myFilter)
-        print(trans)
-        return trans
-        # cv.imwrite("result.jpg",trans)
-        # print(trans)
-        # cv.imshow("result",trans)
-        # cv.waitKey()
+        #使用自定义卷积核
+        return self.myConv(src,myFilter)
 
     #自定义傅里叶变换,src为待操作图像
     def myFFT(self,src):
@@ -105,7 +114,6 @@ class MAIN():
 
         #反傅里叶变换
         img_back = self.myIFFT(trans1 + trans2)
-        print(img_back)
         cv.imwrite(OUTPUT_FFT,img_back)
 
 
