@@ -3,13 +3,13 @@ import numpy as np
 import math
 
 
-SRC1 = "./images/Barbara Palvin.jpg"
-SRC2 = "./images/Constance Jablonski.jpg"
+SRC1 = "./images/Dorothea.jpg"
+SRC2 = "./images/Lily.jpg"
 OUTPUT_GAUSSIAN = "./result/result_gaussian.jpg"
 OUTPUT_FFT = "./result/result_fft.jpg"
 RADIUS = 10
 SIGMA_GAUSSIAN = 10
-SIGMA_FFT = 0.985
+SIGMA_FFT = 0.98
 
 
 class MAIN():
