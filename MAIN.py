@@ -44,7 +44,7 @@ class MAIN():
 
     #自定义卷积函数
     def myConv(self,src,filter):
-        result = np.array(src,dtype = np.uint32)
+        result = np.array(src,dtype = np.uint)
         result = np.pad(result,((RADIUS,RADIUS),(RADIUS,RADIUS),(0,0)),'constant',constant_values=0)
         h,w,d = src.shape
         for i in range(d):
@@ -61,8 +61,8 @@ class MAIN():
         #opencv自带卷积操作
         trans = cv.filter2D(src,3,myFilter)
         #使用自定义卷积核
-        return trans
-        # return self.myConv(src,myFilter)
+        # return trans
+        return self.myConv(src,myFilter)
 
     #自定义傅里叶变换,src为待操作图像
     def myFFT(self,src):
@@ -78,10 +78,10 @@ class MAIN():
         return trans
 
 
-
+    #自定义逆傅里叶变换
     def myIFFT(self,src):
         # 务必用uint16否则出现噪点
-        return_val = np.zeros(src.shape,np.uint16)
+        return_val = np.zeros(src.shape,np.uint)
         #逐通道反傅里叶变换
         for i in range(3):
             f = np.fft.ifftshift(src[:,:,i])
@@ -98,6 +98,10 @@ class MAIN():
         result = trans2 + trans1
         # result = result.astype(np.uint16)
         cv.imwrite(OUTPUT_GAUSSIAN,result)
+
+
+
+        
         #FFT method
         trans1 = self.myFFT(self.img1)
         trans2 = self.myFFT(self.img2)
@@ -115,32 +119,16 @@ class MAIN():
                 r = ((i - center_h) ** 2 + (j - center_w) ** 2) ** 0.5
                 window[i][j] = self.get_cv(r,SIGMA_FFT)
 
-        
-
-
-
-
-        # print(trans1)
-
-
-
-
+        #magnitude为幅值域,phase为相位域，幅值域与滤镜相乘，相位不变。
         magnitude1 = cv.magnitude(trans1.real,trans1.imag)
         magnitude2 = cv.magnitude(trans2.real,trans2.imag)
-        # print(magnitude)
         phase1 = cv.phase(trans1.real,trans1.imag)
         phase2 = cv.phase(trans2.real, trans2.imag)
         for i in range(3):
             magnitude1[:,:,i] *= window
             magnitude2[:,:,i] -= magnitude2[:,:,i] * window
-        # for i in range(h):
-        #     for j in range(w):
-        #         for k in range(3):
-        #             magnitude1[i][j][k] *= window[i][j]
-        #             magnitude2[]
 
-        # for i in range(3):
-        #     magnitude[:,:,i] = np.multiply(magnitude[:,:,i],window)
+        #重新变为复数域
         result1_real,result1_imag = cv.polarToCart(magnitude1,phase1)
         result2_real,result2_imag = cv.polarToCart(magnitude2,phase2)
         # print(magnitude)
@@ -150,16 +138,6 @@ class MAIN():
         trans2.real = result2_real
         trans2.imag = result2_imag
         # print(trans1)
-
-        #滤波操作
-        # for i in range(int(center_h - SIGMA_FFT / 2 * h),int(center_h + SIGMA_FFT / 2 * h)):
-        #     for j in range(int(center_w - SIGMA_FFT / 2 * w),int(center_w + SIGMA_FFT / 2 * w)):
-        #         trans1[i][j] = [0,0,0]
-        #
-        # for i in range(len(trans2)):
-        #     for j in range(len(trans2[0])):
-        #         if trans1[i][j][:].all() != 0:
-        #             trans2[i][j] = [0,0,0]
 
         #反傅里叶变换
         img_back = self.myIFFT(trans1 + trans2)
